@@ -89,4 +89,4 @@ tags
 # Persistent undo
 [._]*.un~
 
-docker/environments/dev.env
+db.sqlite3*
