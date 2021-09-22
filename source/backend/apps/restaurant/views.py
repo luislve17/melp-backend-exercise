@@ -4,6 +4,16 @@ from rest_framework import status
 
 from .models import Restaurant
 
+@api_view(['GET'])
+def get_stats(request):
+    # latitude=x
+    # longitude=y
+    # radius=z
+    # Get all locations distance from (x,y)
+    # Check wich ones D is less than R
+    # Return
+    return Response({"msg":"test"}, status=status.HTTP_200_OK)
+
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
 def apply_restaurant(request):
     if request.method == "GET": return get_restaurant(request)
