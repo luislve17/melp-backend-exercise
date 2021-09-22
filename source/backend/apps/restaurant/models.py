@@ -4,7 +4,7 @@ import uuid
 class Restaurant(models.Model):
     # id = models.CharField(max_length=200, primary_key=True) 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    rating = models.IntegerField(null=True)
+    rating = models.IntegerField(null=True, default=0)
     name = models.CharField(max_length=100, null=True)
     site = models.CharField(max_length=100, null=True)
     email = models.CharField(max_length=100, null=True)

@@ -2,17 +2,43 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
+from haversine import haversine, Unit
+from statistics import mean, stdev
+
 from .models import Restaurant
 
 @api_view(['GET'])
 def get_stats(request):
-    # latitude=x
-    # longitude=y
-    # radius=z
-    # Get all locations distance from (x,y)
-    # Check wich ones D is less than R
-    # Return
-    return Response({"msg":"test"}, status=status.HTTP_200_OK)
+    for field in ["latitude", "longitude", "radius"]:
+        if request.query_params.get(field) is None:
+            response_obj = {"error": f"Missing data in params:{field}"}
+            response_status = status.HTTP_400_BAD_REQUEST
+        else:
+            lat = float(request.query_params.get('latitude'))
+            lng = float(request.query_params.get('longitude'))
+            radius = float(request.query_params.get('radius'))
+            summary_info = {
+                "count": 0,
+                "ratings": []
+            }
+
+            center = (lat, lng)
+            restaurant_objs = Restaurant.objects.all()
+            for obj in restaurant_objs:
+                if obj.lat is not None and obj.lng is not None:
+                    loc_point = (obj.lat, obj.lng)
+                    center_distance = haversine(center, loc_point, unit=Unit.METERS)
+                    if center_distance <= radius:
+                        summary_info['count'] += 1
+                        summary_info['ratings'].append(obj.rating)
+
+            avg = 0 if len(summary_info["ratings"]) == 0 else mean(summary_info["ratings"])
+            std = 0 if len(summary_info["ratings"]) < 2 else stdev(summary_info["ratings"])
+
+            response_obj = {"count": summary_info["count"], "avg": avg, "std": std}
+            response_status = status.HTTP_200_OK
+
+    return Response(response_obj, status=response_status)
 
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
 def apply_restaurant(request):
