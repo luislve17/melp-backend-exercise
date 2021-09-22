@@ -84,23 +84,27 @@ def create_restaurant(request):
 
 def update_restaurant(request):
     if request.data.get("id"):
-        data = request.data
-        expected_fields = [field.name for field in Restaurant._meta.fields]
-        useful_data = {key:val for key, val in data.items() if key in expected_fields}
-        body_data = useful_data.copy()
-        del body_data["id"]
+        try:
+            data = request.data
+            expected_fields = [field.name for field in Restaurant._meta.fields]
+            useful_data = {key:val for key, val in data.items() if key in expected_fields}
+            body_data = useful_data.copy()
+            del body_data["id"]
 
-        obj_id = useful_data["id"]
-        obj = Restaurant.objects.get(pk=obj_id)
-        obj.__dict__.update(body_data)
-        
-        if obj is None:
-            response_obj = {"error": f"Item with id:{obj_id} not found for update|Used parameters in request: {useful_data}"}
+            obj_id = useful_data["id"]
+            obj = Restaurant.objects.get(pk=obj_id)
+            obj.__dict__.update(body_data)
+            
+            if obj is None:
+                response_obj = {"error": f"Item with id:{obj_id} not found for update|Used parameters in request: {useful_data}"}
+                response_status = status.HTTP_400_BAD_REQUEST
+            else:
+                response_obj = obj.__dict__
+                del response_obj["_state"]
+                response_status = status.HTTP_200_OK
+        except Exception as e:
+            response_obj = {"error": f"{str(e)}|Used parameters in request: {dict(request.data)}"}
             response_status = status.HTTP_400_BAD_REQUEST
-        else:
-            response_obj = obj.__dict__
-            del response_obj["_state"]
-            response_status = status.HTTP_200_OK
     else:
         response_obj = {"error": "Missing data in body: 'id'"}
         response_status = status.HTTP_400_BAD_REQUEST
